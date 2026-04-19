@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: linode-cli
+  namespace: ${SKYNET_NAMESPACE}
+spec:
+  restartPolicy: Never
+  containers:
+    - name: linode-cli
+      image: linode/cli:latest
+      env:
+        - name: LINODE_CLI_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: linode-credentials
+              key: token
+      command: ["sleep", "infinity"]
