@@ -9,16 +9,25 @@ set -e
 NAMESPACE="traefik"
 
 echo "==> Deleting IngressRoute..."
-kubectl delete ingressroute traefik-dashboard -n "$NAMESPACE" 2>/dev/null || true
+kubectl delete ingressroutes.traefik.io traefik-dashboard -n "$NAMESPACE" 2>/dev/null || true
 
 echo "==> Deleting middleware..."
-kubectl delete middleware traefik-dashboard-basicauth -n "$NAMESPACE" 2>/dev/null || true
+kubectl delete middlewares.traefik.io traefik-dashboard-basicauth -n "$NAMESPACE" 2>/dev/null || true
 
-echo "==> Deleting secret..."
-kubectl delete secret traefik-dashboard-auth -n "$NAMESPACE" 2>/dev/null || true
+echo "==> Deleting CertificateRequests matching traefik-dashboard-tls*..."
+for cr in $(kubectl get certificaterequests -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | tr ' ' '\n' | grep "^traefik-dashboard-tls"); do
+    kubectl delete certificaterequest "$cr" -n "$NAMESPACE" 2>/dev/null || true
+done
 
-echo "==> Deleting certificates..."
+echo "==> Deleting TLS certificate..."
 kubectl delete certificate traefik-dashboard-tls -n "$NAMESPACE" 2>/dev/null || true
+
+echo "==> Deleting secrets..."
+kubectl delete secret traefik-dashboard-auth -n "$NAMESPACE" 2>/dev/null || true
+kubectl delete secret traefik-dashboard-tls -n "$NAMESPACE" 2>/dev/null || true
+for secret in $(kubectl get secrets -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | tr ' ' '\n' | grep "^traefik-dashboard-tls-"); do
+    kubectl delete secret "$secret" -n "$NAMESPACE" 2>/dev/null || true
+done
 
 echo "==> Uninstalling Traefik..."
 helm uninstall traefik -n "$NAMESPACE" 2>/dev/null || true
@@ -30,6 +39,4 @@ echo "==> Deleting CRDs..."
 kubectl delete -f "https://raw.githubusercontent.com/traefik/traefik/v3.6/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml" 2>/dev/null || true
 
 echo "==> Deleting namespace..."
-kubectl delete namespace "$NAMESPACE" 2>/dev/null || true
-
-echo "==> Done."
+kubectl delete namespace "$NAMESPACE" --force --grace-period=0 2>/dev/null || true

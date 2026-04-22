@@ -1,5 +1,9 @@
 # Linode Token Secret - Manual Setup Instructions
 
+## Two Linode DNS Options in cert-manager
+
+cert-manager supports Linode DNS via two different mechanisms:
+
 ## Create Linode Personal Access Token
 1. Log in to [Linode Cloud Manager](https://cloud.linode.com)
 2. Go to your **Profile** (top right) → **API Tokens** → **Create A Personal Access Token**
@@ -23,7 +27,7 @@ Before proceeding, ensure your domain's SOA record TTL is set to 30 seconds:
 Run the following command, replacing `YOUR_LINODE_TOKEN` with the token you just created:
 
 ```bash
-kubectl create secret generic linode-token-secret \
+kubectl create secret generic linode-credentials \
   -n cert-manager \
   --from-literal=token=YOUR_LINODE_TOKEN
 ```
@@ -31,24 +35,24 @@ kubectl create secret generic linode-token-secret \
 ## Verify the Secret
 
 ```bash
-kubectl get secret linode-token-secret -n cert-manager
-kubectl describe secret linode-token-secret -n cert-manager
+kubectl get secret linode-credentials -n cert-manager
+kubectl describe secret linode-credentials -n cert-manager
 ```
 
 ## Update the Token
 
 ```bash
-kubectl delete secret linode-token-secret -n cert-manager
-kubectl create secret generic linode-token-secret \
+kubectl delete secret linode-credentials -n cert-manager
+kubectl create secret generic linode-credentials \
   -n cert-manager \
-  --from-literal=token=NEW_LINODE_TOKEN
+  --from-literal=token=token
 ```
 
 ## Verify ClusterIssuer
-After the secret is created, check that cert-manager can use it:
+After the secret is created and cert-manager is running, check the ClusterIssuer status:
 
 ```bash
-kubectl describe clusterissuer letsencrypt-production
+kubectl describe clusterissuer letsencrypt-prod
 ```
 
 Look for `The ACME account was successfully registered` in the events.
