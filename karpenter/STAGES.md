@@ -1,3 +1,5 @@
+https://github.com/linode/karpenter-provider-linode
+
 # Skynet Deployment - Remaining Stages
 
 ## Stage 3: Traefik + Test Web Server
@@ -91,7 +93,7 @@ vim .env  # Add LINODE_TOKEN
 ./deploy-skynet.sh
 
 # 3. Verify
-kubectl get pods -n $SKYNET_NAMESPACE -o wide
+kubectl get pods -n $LINODE_CLI_NS -o wide
 kubectl get nodes -l karpenter.k8s.linode/instance-gpu-name
 
 # 4. Copy models to PVC (example)

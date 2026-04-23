@@ -1,0 +1,18 @@
+firewall:
+  inbound:
+    - label: "allow-traefik-http"
+      action: "ACCEPT"
+      description: "Traefik HTTP access"
+      protocol: "TCP"
+      ports: "80"
+      addresses:
+        ipv4:
+          - "0.0.0.0/0"
+    - label: "allow-traefik-https"
+      action: "ACCEPT"
+      description: "Traefik HTTPS access"
+      protocol: "TCP"
+      ports: "443"
+      addresses:
+        ipv4:
+          - "0.0.0.0/0"

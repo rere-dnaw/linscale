@@ -7,10 +7,10 @@
 set -e
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-NAMESPACE="traefik"
+NAMESPACE="${TRAEFIK_NS:-traefik}"
 CHART_VERSION="39.0.8"
-TRAEFIK_USER="${TRAEFIK_USER:-admin665}"
-TRAEFIK_PASSWORD="${TRAEFIK_PASSWORD:-adminLB123}"
+TRAEFIK_USER="${TRAEFIK_USER:?TRAEFIK_USER not set in .env}"
+TRAEFIK_PASSWORD="${TRAEFIK_PASSWORD:?TRAEFIK_PASSWORD not set in .env}"
 
 echo "==> Adding helm repos..."
 helm repo add traefik https://helm.traefik.io/traefik 2>/dev/null || true
@@ -20,14 +20,19 @@ echo "==> Creating namespace..."
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 echo "==> Installing Traefik helm chart..."
+TEMP_VALUES=$(mktemp)
+envsubst < "$SCRIPT_DIR/values.yaml" > "$TEMP_VALUES"
+
 helm upgrade traefik traefik/traefik \
     --install \
     --version "$CHART_VERSION" \
     --namespace "$NAMESPACE" \
-    --values "$SCRIPT_DIR/values.yaml" \
+    --values "$TEMP_VALUES" \
     --set-string extraObjects[0].stringData.username="$TRAEFIK_USER" \
     --set-string extraObjects[0].stringData.password="$TRAEFIK_PASSWORD" \
     --wait
+
+rm -f "$TEMP_VALUES"
 
 echo "==> Waiting for Traefik to be ready..."
 kubectl wait --for=condition=ready pods -l app.kubernetes.io/name=traefik -n "$NAMESPACE" --timeout=120s
@@ -49,6 +54,6 @@ echo "  1. Gateway API CRDs:"
 echo "     kubectl apply -f https://raw.githubusercontent.com/kubernetes/gateway-api/master/deploy/static/gateway.yaml"
 echo "  2. cert-manager with letsencrypt-prod ClusterIssuer must be present"
 echo ""
-echo "==> DNS: Add A record for traefik.portal7.eu"
+echo "==> DNS: Add A record for traefik.$TRAEFIK_DOMAIN"
 echo ""
 echo "==> Dashboard credentials: $TRAEFIK_USER / $TRAEFIK_PASSWORD"

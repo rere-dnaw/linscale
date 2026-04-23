@@ -7,7 +7,7 @@
 set -e
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-NAMESPACE="cert-manager"
+NAMESPACE="${CERT_MANAGER_NS:-cert-manager}"
 
 echo "==> Deleting ClusterIssuer..."
 kubectl delete clusterissuer letsencrypt-prod 2>/dev/null || true

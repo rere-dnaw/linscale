@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: linode-cli
-  namespace: ${SKYNET_NAMESPACE}
+  namespace: ${LINODE_CLI_NS}
 spec:
   restartPolicy: Never
   containers:

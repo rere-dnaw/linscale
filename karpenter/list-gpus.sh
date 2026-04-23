@@ -2,11 +2,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NAMESPACE="${SKYNET_NAMESPACE:-default}"
+NAMESPACE="${LINODE_CLI_NS:-default}"
 
 [ -f "${SCRIPT_DIR}/.env" ] && set -a && source "${SCRIPT_DIR}/.env" && set +a
 
-LINODE_CLI_NAMESPACE="${SKYNET_NAMESPACE:-default}"
+LINODE_CLI_NAMESPACE="${LINODE_CLI_NS:-default}"
 
 echo "=== Querying Linode GPU Instance Types ==="
 
@@ -27,7 +27,7 @@ kubectl exec linode-cli -n "$LINODE_CLI_NAMESPACE" -- \
     --format "id,label,vcpus,memory,gpus,price.monthly,price.hourly" \
     --no-headers 2>/dev/null | grep gpu || echo "No GPU types found"
 
-echo ""
+echo "" 
 echo "=== Region Availability ==="
 kubectl exec linode-cli -n "$LINODE_CLI_NAMESPACE" -- \
     linode-cli regions availability \

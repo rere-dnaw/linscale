@@ -7,7 +7,7 @@
 set -e
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-NAMESPACE="cert-manager"
+NAMESPACE="${CERT_MANAGER_NS:-cert-manager}"
 CHART_VERSION="1.20.2"
 WEBHOOK_VERSION="v0.4.1"
 WEBHOOK_URL="https://github.com/linode/cert-manager-webhook-linode/releases/download/${WEBHOOK_VERSION}/cert-manager-webhook-linode-${WEBHOOK_VERSION}.tgz"
@@ -51,13 +51,23 @@ kubectl apply -f "$SCRIPT_DIR/rbac.yaml"
 
 echo "==> Checking Linode token secret..."
 if ! kubectl get secret linode-credentials -n "$NAMESPACE" 2>/dev/null; then
-    echo "ERROR: linode-credentials not found."
-    echo "See secret-guide.md for setup instructions."
-    exit 1
+    if [ -n "$CERT_MANAGER_TOKEN" ]; then
+        echo "==> Creating linode-credentials secret from CERT_MANAGER_TOKEN..."
+        kubectl create secret generic linode-credentials \
+            -n "$NAMESPACE" \
+            --from-literal=token="$CERT_MANAGER_TOKEN"
+    else
+        echo "ERROR: linode-credentials not found and CERT_MANAGER_TOKEN not set."
+        echo "See secret-guide.md for setup instructions."
+        exit 1
+    fi
 fi
 
 echo "==> Applying ClusterIssuer..."
-kubectl apply -f "$SCRIPT_DIR/issuers/letsencrypt-prod.yaml"
+TEMP_ISSUER=$(mktemp)
+envsubst < "$SCRIPT_DIR/issuers/letsencrypt-prod.yaml" > "$TEMP_ISSUER"
+kubectl apply -f "$TEMP_ISSUER"
+rm -f "$TEMP_ISSUER"
 
 echo "==> Waiting for ClusterIssuer..."
 kubectl wait --for=condition=ready clusterissuer/letsencrypt-prod --timeout=120s || {

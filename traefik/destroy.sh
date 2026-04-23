@@ -6,7 +6,7 @@
 
 set -e
 
-NAMESPACE="traefik"
+NAMESPACE="${TRAEFIK_NS:-traefik}"
 
 echo "==> Deleting IngressRoute..."
 kubectl delete ingressroutes.traefik.io traefik-dashboard -n "$NAMESPACE" 2>/dev/null || true

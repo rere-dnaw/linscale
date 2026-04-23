@@ -9,6 +9,9 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
+      - selector:
+          dnsZones:
+            - "${TRAEFIK_DOMAIN}"
       - dns01:
           webhook:
             solverName: linode
