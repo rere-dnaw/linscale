@@ -8,6 +8,15 @@ set -e
 
 NAMESPACE="${TRAEFIK_NS:-traefik}"
 
+PROTECTED_NAMESPACES="default kube-node-lease kube-public kube-system"
+for protected in $PROTECTED_NAMESPACES; do
+    if [ "$NAMESPACE" = "$protected" ]; then
+        echo "ERROR: Cannot delete protected namespace '$NAMESPACE'"
+        echo "This is a Kubernetes system namespace."
+        exit 1
+    fi
+done
+
 echo "==> Deleting IngressRoute..."
 kubectl delete ingressroutes.traefik.io traefik-dashboard -n "$NAMESPACE" 2>/dev/null || true
 

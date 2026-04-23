@@ -17,6 +17,7 @@ helm repo add jetstack https://charts.jetstack.io
 helm repo update
 
 echo "==> Creating namespace..."
+kubectl annotate namespace "$NAMESPACE" kubectl.kubernetes.io/last-applied-configuration='{}' --overwrite 2>/dev/null || true
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 echo "==> Installing cert-manager helm chart..."
@@ -32,9 +33,17 @@ helm upgrade \
 echo "==> Waiting for cert-manager to be ready..."
 kubectl wait --for=condition=ready pods -l app.kubernetes.io/instance=cert-manager -n "$NAMESPACE" --timeout=120s
 
-echo "Installing from $WEBHOOK_URL..."
+echo "==> Installing Linode webhook..."
 helm upgrade cert-manager-webhook-linode \
     --namespace "$NAMESPACE" \
+    --install \
+    --create-namespace \
+    --version "$WEBHOOK_VERSION" \
+    "$WEBHOOK_URL" || \
+helm upgrade cert-manager-webhook-linode \
+    --namespace "$NAMESPACE" \
+    --install \
+    --create-namespace \
     --set-string deployment.logLevel="" \
     --set-string image.tag=v0.4.1 \
     "$WEBHOOK_URL"
@@ -45,9 +54,6 @@ kubectl wait --for=condition=ready pods -l app.kubernetes.io/name=cert-manager-w
     kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=cert-manager-webhook-linode 2>/dev/null || \
     kubectl get pods -n "$NAMESPACE" | grep webhook
 }
-
-echo "==> Applying RBAC for Linode DNS..."
-kubectl apply -f "$SCRIPT_DIR/rbac.yaml"
 
 echo "==> Checking Linode token secret..."
 if ! kubectl get secret linode-credentials -n "$NAMESPACE" 2>/dev/null; then
@@ -64,17 +70,6 @@ if ! kubectl get secret linode-credentials -n "$NAMESPACE" 2>/dev/null; then
 fi
 
 echo "==> Applying ClusterIssuer..."
-if [ -z "$CERT_MANAGER_EMAIL" ]; then
-    echo "ERROR: CERT_MANAGER_EMAIL not set. Please set it in your .env file."
-    exit 1
-fi
-TEMP_ISSUER=$(mktemp)
-envsubst < "$SCRIPT_DIR/issuers/letsencrypt-prod.yaml" > "$TEMP_ISSUER"
-kubectl apply -f "$TEMP_ISSUER"
-rm -f "$TEMP_ISSUER"
+envsubst < "$SCRIPT_DIR/cluster-issuer.yaml" | kubectl apply -f -
 
-echo "==> Waiting for ClusterIssuer..."
-kubectl wait --for=condition=ready clusterissuer/letsencrypt-prod --timeout=120s || {
-    echo "WARNING: ClusterIssuer not ready. Check:"
-    echo "  kubectl describe clusterissuer letsencrypt-prod"
-}
+echo "==> ClusterIssuer deployed. Verify with: kubectl get clusterissuer letsencrypt-prod -o wide"

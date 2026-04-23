@@ -17,6 +17,7 @@ helm repo add traefik https://helm.traefik.io/traefik 2>/dev/null || true
 helm repo update
 
 echo "==> Creating namespace..."
+kubectl annotate namespace "$NAMESPACE" kubectl.kubernetes.io/last-applied-configuration='{}' --overwrite 2>/dev/null || true
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 helm upgrade traefik traefik/traefik \
@@ -26,6 +27,8 @@ helm upgrade traefik traefik/traefik \
     --values "$SCRIPT_DIR/values.yaml" \
     --set-string extraObjects[0].stringData.username="$TRAEFIK_USER" \
     --set-string extraObjects[0].stringData.password="$TRAEFIK_PASSWORD" \
+    --set-string ingressRoute.dashboard.matchRule="Host(\`traefik.${TRAEFIK_DOMAIN}\`)" \
+    --set-string extraObjects[2].spec.dnsNames[0]="traefik.${TRAEFIK_DOMAIN}" \
     --wait
 
 echo "==> Waiting for Traefik to be ready..."

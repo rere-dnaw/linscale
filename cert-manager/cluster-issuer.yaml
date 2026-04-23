@@ -11,8 +11,8 @@ spec:
     solvers:
       - selector:
           dnsZones:
-            - "${TRAEFIK_DOMAIN}"
-      - dns01:
+            - ${TRAEFIK_DOMAIN}
+        dns01:
           webhook:
             solverName: linode
             groupName: acme.slicen.me

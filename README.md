@@ -14,6 +14,9 @@ Orchestration scripts for deploying a full Kubernetes stack on Linode LKE.
 
 ## References
 https://github.com/linode/cloud-firewall-controller
+https://github.com/linode/cert-manager-webhook-linode
+https://github.com/linode/karpenter-provider-linode
+https://github.com/linode/linode-cli
 
 
 ## Prerequisites
@@ -48,6 +51,25 @@ Get tokens from: https://cloud.linode.com/profile/tokens
 | `LINODE_CLI_TOKEN` | Linode CLI pod (kubectl exec) | Read/Write for Linodes |
 | `CERT_MANAGER_TOKEN` | DNS-01 challenge (Linode webhook) | Read/Write for Domains |
 | `KARPENTER_TOKEN` | Karpenter (future) | Read/Write |
+
+## Create Linode Personal Access Token
+1. Log in to [Linode Cloud Manager](https://cloud.linode.com)
+2. Go to your **Profile** (top right) → **API Tokens** → **Create A Personal Access Token**
+3. Set the following:
+   - **Label**: `cert-manager-dns` (or similar)
+   - **Expiry**: Choose a reasonable period (e.g., 12 months)
+   - **Scopes**: Set all to `No Access`, then set **Domains** to `Read/Write`
+4. Click **Create Token**
+5. **Copy the token immediately** - it will not be shown again
+
+## Domain SOA TTL
+Before proceeding, ensure your domain's SOA record TTL is set to 30 seconds:
+
+1. In Linode Cloud Manager, go to **Domains**
+2. Click on your domain (`portal7.eu`)
+3. Find the **SOA Record**, click the three dots → **Edit**
+4. Change TTL to **30 seconds**
+5. Click **Save**
 
 ## Usage
 

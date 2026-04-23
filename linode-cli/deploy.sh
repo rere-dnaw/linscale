@@ -7,7 +7,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NAMESPACE="${LINODE_CLI_NS:?LINESPACE_CLI_NS not set in .env}"
+NAMESPACE="${LINODE_CLI_NS:?LINODE_CLI_NS not set in .env}"
 LINODE_TOKEN="${LINODE_TOKEN:-}"
 
 if [ -z "$LINODE_TOKEN" ]; then
@@ -16,6 +16,7 @@ if [ -z "$LINODE_TOKEN" ]; then
 fi
 
 echo "==> Creating namespace if needed..."
+kubectl annotate namespace "$NAMESPACE" kubectl.kubernetes.io/last-applied-configuration='{}' --overwrite 2>/dev/null || true
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 echo "==> Applying credentials secret..."
