@@ -12,6 +12,10 @@ Orchestration scripts for deploying a full Kubernetes stack on Linode LKE.
 | `traefik` | Traefik ingress controller with HTTPS |
 | `karpenter` | Karpenter GPU node provisioning (**NOT IMPLEMENTED - placeholder**) |
 
+## References
+https://github.com/linode/cloud-firewall-controller
+
+
 ## Prerequisites
 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) configured for your LKE cluster
@@ -143,4 +147,15 @@ kubectl logs -n default linode-cli
 
 # Delete everything and start fresh
 ./main.sh destroy all
+```
+
+### Linode-cli
+
+```bash
+# List all Linodes
+kubectl exec -it linode-cli -- linodes list
+
+# Alternative: Run single command without sleep
+kubectl run linode-cli-test --rm -it --image=linode/cli:latest --restart=Never -- \
+  linodes list
 ```

@@ -64,6 +64,10 @@ if ! kubectl get secret linode-credentials -n "$NAMESPACE" 2>/dev/null; then
 fi
 
 echo "==> Applying ClusterIssuer..."
+if [ -z "$CERT_MANAGER_EMAIL" ]; then
+    echo "ERROR: CERT_MANAGER_EMAIL not set. Please set it in your .env file."
+    exit 1
+fi
 TEMP_ISSUER=$(mktemp)
 envsubst < "$SCRIPT_DIR/issuers/letsencrypt-prod.yaml" > "$TEMP_ISSUER"
 kubectl apply -f "$TEMP_ISSUER"

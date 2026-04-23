@@ -19,20 +19,14 @@ helm repo update
 echo "==> Creating namespace..."
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
-echo "==> Installing Traefik helm chart..."
-TEMP_VALUES=$(mktemp)
-envsubst < "$SCRIPT_DIR/values.yaml" > "$TEMP_VALUES"
-
 helm upgrade traefik traefik/traefik \
     --install \
     --version "$CHART_VERSION" \
     --namespace "$NAMESPACE" \
-    --values "$TEMP_VALUES" \
+    --values "$SCRIPT_DIR/values.yaml" \
     --set-string extraObjects[0].stringData.username="$TRAEFIK_USER" \
     --set-string extraObjects[0].stringData.password="$TRAEFIK_PASSWORD" \
     --wait
-
-rm -f "$TEMP_VALUES"
 
 echo "==> Waiting for Traefik to be ready..."
 kubectl wait --for=condition=ready pods -l app.kubernetes.io/name=traefik -n "$NAMESPACE" --timeout=120s
@@ -45,15 +39,8 @@ echo "  kubectl get all -n $NAMESPACE"
 echo "  kubectl get gateways -n $NAMESPACE"
 echo "  kubectl get httproutes -n $NAMESPACE"
 echo "  kubectl get middlewares -n $NAMESPACE"
-echo ""
-
 echo "  kubectl get certificates -n $NAMESPACE"
-echo ""
-echo "==> Prerequisites (if not already installed):"
-echo "  1. Gateway API CRDs:"
-echo "     kubectl apply -f https://raw.githubusercontent.com/kubernetes/gateway-api/master/deploy/static/gateway.yaml"
-echo "  2. cert-manager with letsencrypt-prod ClusterIssuer must be present"
 echo ""
 echo "==> DNS: Add A record for traefik.$TRAEFIK_DOMAIN"
 echo ""
-echo "==> Dashboard credentials: $TRAEFIK_USER / $TRAEFIK_PASSWORD"
+echo "==> Dashboard user name: $TRAEFIK_USER"

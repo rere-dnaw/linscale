@@ -2,20 +2,6 @@ https://github.com/linode/karpenter-provider-linode
 
 # Skynet Deployment - Remaining Stages
 
-## Stage 3: Traefik + Test Web Server
-
-### Objectives
-- Deploy Traefik ingress controller via Helm
-- Create test HTTPS web server deployment
-- Configure Linode Cloud Firewall for LKE
-- Test HTTPS connectivity with Let's Encrypt certificate
-
-### Files to Create
-- `traefik-values.yaml` - Traefik Helm chart values
-- `traefik-http-issuer.yaml` - Let's Encrypt HTTP01 Issuer
-- `test-https-deployment.yaml` - Test web server with TLS
-- `linode-firewall-rules.sh` - Configure firewall for ingress
-
 ### Steps
 ```bash
 # 1. Install Traefik

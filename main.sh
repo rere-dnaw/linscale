@@ -92,7 +92,7 @@ deploy_stage() {
     if [ "$stage" = "linode-cli" ]; then
         LINODE_TOKEN="$LINODE_CLI_TOKEN" LINODE_CLI_NS="${LINODE_CLI_NS:-default}" bash "$stage_dir/deploy.sh"
     elif [ "$stage" = "cert-manager" ]; then
-        CERT_MANAGER_TOKEN="$CERT_MANAGER_TOKEN" CERT_MANAGER_NS="${CERT_MANAGER_NS:-cert-manager}" bash "$stage_dir/deploy.sh"
+        CERT_MANAGER_TOKEN="$CERT_MANAGER_TOKEN" CERT_MANAGER_EMAIL="$CERT_MANAGER_EMAIL" CERT_MANAGER_NS="${CERT_MANAGER_NS:-cert-manager}" bash "$stage_dir/deploy.sh"
     elif [ "$stage" = "traefik" ]; then
         TRAEFIK_NS="${TRAEFIK_NS:-traefik}" TRAEFIK_DOMAIN="${TRAEFIK_DOMAIN}" TRAEFIK_USER="${TRAEFIK_USER}" TRAEFIK_PASSWORD="${TRAEFIK_PASSWORD}" bash "$stage_dir/deploy.sh"
     elif [ "$stage" = "linode-firewall" ]; then
