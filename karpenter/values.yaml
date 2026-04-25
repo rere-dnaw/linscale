@@ -1,0 +1,7 @@
+replicas: 1
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution: []
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-NAMESPACE="${KARPENTER_NAMESPACE:-default}"
+NAMESPACE="${KARPENTER_NS:-default}"
 TIMEOUT=600
 
 ORIGINAL_NODES=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
@@ -21,6 +21,9 @@ metadata:
   name: $NAMESPACE
 spec:
   template:
+    metadata:
+      labels:
+        k8scale-test: enabled
     spec:
       requirements:
         - key: kubernetes.io/arch
@@ -53,6 +56,8 @@ spec:
         app: inflate
     spec:
       terminationGracePeriodSeconds: 0
+      nodeSelector:
+        k8scale-test: "enabled"
       securityContext:
         runAsUser: 1000
         runAsGroup: 3000

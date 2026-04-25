@@ -34,7 +34,7 @@ Stages:
     linode-firewall      Linode Cloud Firewall controller
     cert-manager         cert-manager with Linode DNS-01 solver
     traefik              Traefik ingress controller
-    karpenter            Karpenter GPU nodes (NOT IMPLEMENTED - placeholder)
+    karpenter            Karpenter GPU node provisioning
 
 Examples:
     $(basename "$0") deploy all          # Deploy everything
@@ -61,42 +61,13 @@ deploy_stage() {
     local stage_dir="$SCRIPT_DIR/$stage"
 
     if [ "$stage" = "karpenter" ]; then
-        echo ""
-        echo "========================================"
-        echo "KARPENTER STAGE IS NOT IMPLEMENTED YET"
-        echo "========================================"
-        echo ""
-        echo "This is a placeholder. Karpenter GPU node provisioning"
-        echo "is planned for future implementation."
-        echo ""
-        echo "Current implemented stages:"
-        printf '  - %s\n' "${DEPLOY_ORDER[@]}"
-        echo ""
-        return 0
-    fi
-
-    if [ ! -d "$stage_dir" ]; then
-        echo "Error: Stage directory '$stage_dir' not found"
-        return 1
-    fi
-
-    if [ ! -f "$stage_dir/deploy.sh" ]; then
-        echo "Error: deploy.sh not found for stage '$stage'"
-        return 1
-    fi
-
-    echo ""
-    echo "==> Deploying $stage..."
-    echo "========================================"
-
-    if [ "$stage" = "linode-cli" ]; then
-        LINODE_TOKEN="$LINODE_CLI_TOKEN" LINODE_CLI_NS="${LINODE_CLI_NS:-default}" bash "$stage_dir/deploy.sh"
-    elif [ "$stage" = "cert-manager" ]; then
-        CERT_MANAGER_TOKEN="$CERT_MANAGER_TOKEN" CERT_MANAGER_EMAIL="$CERT_MANAGER_EMAIL" CERT_MANAGER_NS="${CERT_MANAGER_NS:-cert-manager}" bash "$stage_dir/deploy.sh"
-    elif [ "$stage" = "traefik" ]; then
-        TRAEFIK_NS="${TRAEFIK_NS:-traefik}" TRAEFIK_DOMAIN="${TRAEFIK_DOMAIN}" TRAEFIK_USER="${TRAEFIK_USER}" TRAEFIK_PASSWORD="${TRAEFIK_PASSWORD}" bash "$stage_dir/deploy.sh"
-    elif [ "$stage" = "linode-firewall" ]; then
-        LINODE_FIREWALL_NS="${LINODE_FIREWALL_NS:-kube-system}" bash "$stage_dir/deploy.sh"
+        KARPENTER_TOKEN="$KARPENTER_TOKEN" \
+        KARPENTER_CLUSTER_NAME="$KARPENTER_CLUSTER_NAME" \
+        KARPENTER_NS="${KARPENTER_NS:-kube-system}" \
+        KARPENTER_PROVIDER_DIR="$KARPENTER_PROVIDER_DIR" \
+        KARPENTER_BATCH_MAX_DURATION="$KARPENTER_BATCH_MAX_DURATION" \
+        KARPENTER_BATCH_IDLE_DURATION="$KARPENTER_BATCH_IDLE_DURATION" \
+        bash "$stage_dir/deploy.sh"
     else
         bash "$stage_dir/deploy.sh"
     fi
@@ -109,36 +80,7 @@ destroy_stage() {
     local stage_dir="$SCRIPT_DIR/$stage"
 
     if [ "$stage" = "karpenter" ]; then
-        echo ""
-        echo "========================================"
-        echo "KARPENTER STAGE IS NOT IMPLEMENTED YET"
-        echo "========================================"
-        echo ""
-        return 0
-    fi
-
-    if [ ! -d "$stage_dir" ]; then
-        echo "Error: Stage directory '$stage_dir' not found"
-        return 1
-    fi
-
-    if [ ! -f "$stage_dir/destroy.sh" ]; then
-        echo "Error: destroy.sh not found for stage '$stage'"
-        return 1
-    fi
-
-    echo ""
-    echo "==> Destroying $stage..."
-    echo "========================================"
-
-    if [ "$stage" = "linode-cli" ]; then
-        LINODE_CLI_NS="${LINODE_CLI_NS:-default}" bash "$stage_dir/destroy.sh"
-    elif [ "$stage" = "cert-manager" ]; then
-        CERT_MANAGER_NS="${CERT_MANAGER_NS:-cert-manager}" bash "$stage_dir/destroy.sh"
-    elif [ "$stage" = "traefik" ]; then
-        TRAEFIK_NS="${TRAEFIK_NS:-traefik}" bash "$stage_dir/destroy.sh"
-    elif [ "$stage" = "linode-firewall" ]; then
-        LINODE_FIREWALL_NS="${LINODE_FIREWALL_NS:-kube-system}" bash "$stage_dir/destroy.sh"
+        KARPENTER_NS="${KARPENTER_NS:-kube-system}" bash "$stage_dir/destroy.sh"
     else
         bash "$stage_dir/destroy.sh"
     fi
