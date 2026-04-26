@@ -10,7 +10,7 @@ Orchestration scripts for deploying a full Kubernetes stack on Linode LKE.
 | `linode-firewall` | Linode Cloud Firewall controller (Helm) |
 | `cert-manager` | cert-manager with Linode DNS-01 webhook |
 | `traefik` | Traefik ingress controller with HTTPS |
-| `karpenter` | Karpenter GPU node provisioning (**NOT IMPLEMENTED - placeholder**) |
+| `karpenter` | Karpenter GPU node provisioning |
 
 ## References
 https://github.com/linode/cloud-firewall-controller
@@ -24,6 +24,7 @@ https://github.com/linode/linode-cli
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) configured for your LKE cluster
 - [Helm 3](https://helm.sh/docs/intro/install/)
 - [linode-cli](https://www.linode.com/products/cli/) (optional, for manual operations)
+- [jq](https://stedolan.github.io/jq/) (for instance selector script)
 - LKE cluster running
 
 ## Quick Start
@@ -175,9 +176,28 @@ kubectl logs -n default linode-cli
 
 ```bash
 # List all Linodes
-kubectl exec -it linode-cli -- linodes list
+kubectl exec -it linode-cli -- linode-cli linodes list
 
 # Alternative: Run single command without sleep
 kubectl run linode-cli-test --rm -it --image=linode/cli:latest --restart=Never -- \
   linodes list
 ```
+
+### Instance Selector (for Karpenter GPU nodepools)
+
+Interactive script to select Linode instance types, grouped by class and GPU label:
+
+```bash
+# Interactive mode - select from grouped menu
+LINODE_TYPE=$(./linode-cli/select-instance.sh)
+
+# Direct mode - specify instance ID, falls back to alternatives if unavailable
+LINODE_TYPE=$(./linode-cli/select-instance.sh g2-gpu-rtx4000-ada-1xmedium)
+```
+
+**Features:**
+- Groups instances by class (standard, gpu, highmem, dedicated, premium) and GPU label (RTX4000 Ada, RTX6000, etc.)
+- Direct selection validates instance availability
+- If requested instance unavailable, shows numbered alternatives within same class+GPU group
+
+**Requires:** `jq` installed locally (e.g. `sudo apt install jq` or `brew install jq`)
