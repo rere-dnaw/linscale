@@ -4,7 +4,7 @@ metadata:
   name: ${WORKLOAD_NAME}
   namespace: ${WORKLOAD_NS}
 spec:
-  replicas: ${REPLICAS:-1}
+  replicas: ${REPLICAS}
   selector:
     matchLabels:
       app: ${WORKLOAD_NAME}

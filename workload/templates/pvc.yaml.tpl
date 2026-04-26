@@ -5,8 +5,8 @@ metadata:
   namespace: ${WORKLOAD_NS}
 spec:
   accessModes:
-    - ${PVC_ACCESS_MODE:-ReadWriteOnce}
+    - ${PVC_ACCESS_MODE}
   resources:
     requests:
       storage: ${PVC_SIZE}
-  storageClassName: ${PVC_STORAGE_CLASS:-linode-block-storage-retain}
+  storageClassName: ${PVC_STORAGE_CLASS}

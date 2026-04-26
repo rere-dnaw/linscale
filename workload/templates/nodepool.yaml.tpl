@@ -37,5 +37,5 @@ spec:
           effect: NoSchedule
       expireAfter: Never
   limits:
-    cpu: "${CPU_LIMIT_NUMERIC:-16}"
+    cpu: "${CPU_LIMIT_CORE}"
   weight: 100

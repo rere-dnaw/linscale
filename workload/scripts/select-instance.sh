@@ -13,19 +13,23 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." &>/dev/null && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKLOAD_DIR="$(dirname "$SCRIPT_DIR")"
+REPO_ROOT="$(dirname "$WORKLOAD_DIR")"
 
-ENV_LOCATIONS="$SCRIPT_DIR/../../.env $SCRIPT_DIR/../.env"
+# Load infra config
+if [ -f "$REPO_ROOT/.env" ]; then
+    set -a
+    source "$REPO_ROOT/.env"
+    set +a
+fi
 
-for env_file in $ENV_LOCATIONS; do
-    if [ -f "$env_file" ]; then
-        set -a
-        source "$env_file"
-        set +a
-        break
-    fi
-done
+# Load workload config
+if [ -f "$WORKLOAD_DIR/.env" ]; then
+    set -a
+    source "$WORKLOAD_DIR/.env"
+    set +a
+fi
 
 NAMESPACE="${LINODE_CLI_NS:-kube-system}"
 

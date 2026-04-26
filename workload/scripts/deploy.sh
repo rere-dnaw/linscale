@@ -45,6 +45,10 @@ WEB_PORT="${WEB_PORT:-8080}"
 ENABLE_TLS="${ENABLE_TLS:-true}"
 PVC_ENABLED="${PVC_ENABLED:-true}"
 
+export WORKLOAD_NS NAMESPACE WORKLOAD_NAME IMAGE WEB_PORT
+export REPLICAS="$(printf '%d' ${REPLICAS:-1})" CPU_REQUEST="${CPU_REQUEST:-100m}" MEMORY_REQUEST="${MEMORY_REQUEST:-128Mi}" CPU_LIMIT="${CPU_LIMIT:-2000m}" MEMORY_LIMIT="${MEMORY_LIMIT:-4Gi}" WEB_HOST PVC_SIZE WORKLOAD_INSTANCE_TYPE
+export EXTRA_PORTS_SVC EXTRA_PORTS_FW
+
 # 1. Validate prerequisites
 echo "==> Validating prerequisites..."
 kubectl cluster-info 2>/dev/null || { echo "Error: No cluster connection"; exit 1; }
@@ -85,13 +89,13 @@ if [ -n "$EXTRA_PORTS" ]; then
 
         EXTRA_PORTS_FW="${EXTRA_PORTS_FW}
     - label: \"allow-${name}\"
-      action: \"ACCEPT\"
+      action: ACCEPT
       description: \"${name} access for ${WORKLOAD_NAME}\"
-      protocol: \"${protocol}\"
+      protocol: ${protocol}
       ports: \"${port}\"
       addresses:
         ipv4:
-          - \"0.0.0.0/0\""
+        - 0.0.0.0/0"
     done
 fi
 export EXTRA_PORTS_SVC EXTRA_PORTS_FW
@@ -110,29 +114,29 @@ EOF
 
 # 6. Apply nodepool
 echo "==> Creating Karpenter nodepool..."
-CPU_LIMIT_NUMERIC=$(echo "${CPU_LIMIT:-2000m}" | grep -oE '[0-9]+')
-export CPU_LIMIT_NUMERIC
-envsubst < "$SCRIPT_DIR/templates/nodepool.yaml.tpl" | kubectl apply -f -
+CPU_LIMIT_CORE=$(echo "$CPU_LIMIT" | grep -oE '[0-9]+')
+export CPU_LIMIT_CORE
+envsubst < "$WORKLOAD_DIR/templates/nodepool.yaml.tpl" | kubectl apply -f -
 
 # 7. Apply deployment
 echo "==> Deploying workload..."
-envsubst < "$SCRIPT_DIR/templates/deployment.yaml.tpl" | kubectl apply -f -
+envsubst < "$WORKLOAD_DIR/templates/deployment.yaml.tpl" | kubectl apply -f -
 
 # 8. Apply service
 echo "==> Creating service..."
-envsubst < "$SCRIPT_DIR/templates/service.yaml.tpl" | kubectl apply -f -
+envsubst < "$WORKLOAD_DIR/templates/service.yaml.tpl" | kubectl apply -f -
 
 # 9. Apply IngressRoute + Certificate (TLS)
 if [ "$ENABLE_TLS" = "true" ]; then
     echo "==> Configuring TLS..."
-    envsubst < "$SCRIPT_DIR/templates/ingress.yaml.tpl" | kubectl apply -f -
-    envsubst < "$SCRIPT_DIR/templates/cert.yaml.tpl" | kubectl apply -f -
+    envsubst < "$WORKLOAD_DIR/templates/ingress.yaml.tpl" | kubectl apply -f -
+    envsubst < "$WORKLOAD_DIR/templates/cert.yaml.tpl" | kubectl apply -f -
 fi
 
 # 10. Apply PVC
 if [ "$PVC_ENABLED" = "true" ]; then
     echo "==> Creating PVC..."
-    envsubst < "$SCRIPT_DIR/templates/pvc.yaml.tpl" | kubectl apply -f -
+    envsubst < "$WORKLOAD_DIR/templates/pvc.yaml.tpl" | kubectl apply -f -
 
     echo "==> Mounting PVC in deployment..."
     kubectl patch deployment "$WORKLOAD_NAME" -n "$NAMESPACE" \
@@ -143,9 +147,10 @@ if [ "$PVC_ENABLED" = "true" ]; then
         -p "[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/0/volumeMounts\", \"value\":[{\"name\": \"data\", \"mountPath\": \"/data\"}]}]"
 fi
 
-# 11. Apply firewall
+# 11. Apply firewall via linode-firewall controller
 echo "==> Creating firewall rules..."
-envsubst < "$SCRIPT_DIR/templates/firewall.yaml.tpl" | kubectl apply -f -
+export WORKLOAD_NAME NAMESPACE EXTRA_PORTS_FW
+cd "$REPO_ROOT/linode-firewall" && ./deploy.sh workload-apply "$WORKLOAD_NAME" "$NAMESPACE" "$EXTRA_PORTS_FW"
 
 # 12. Wait for deployment
 echo "==> Waiting for deployment..."

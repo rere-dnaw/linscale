@@ -29,11 +29,11 @@ case "${1:-}" in
         kubectl delete -n "$NAMESPACE" deployment "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" service "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" ingressroute "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
-        kubectl delete -n "$NAMESPACE" certificate "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" pvc "${WORKLOAD_NAME}-data" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodepool "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodeclass "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
-        kubectl delete -n "$NAMESPACE" firewall "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
+        echo "==> Removing firewall rules..."
+        (cd "$REPO_ROOT/linode-firewall" && ./deploy.sh workload-remove "$WORKLOAD_NAME" "$NAMESPACE")
         rm -f "$WORKLOAD_DIR/${WORKLOAD_NAME}.last-run.yaml"
         ;;
     --keep-pvc|*)
@@ -41,10 +41,10 @@ case "${1:-}" in
         kubectl delete -n "$NAMESPACE" deployment "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" service "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" ingressroute "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
-        kubectl delete -n "$NAMESPACE" certificate "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodepool "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodeclass "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
-        kubectl delete -n "$NAMESPACE" firewall "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
+        echo "==> Removing firewall rules..."
+        (cd "$REPO_ROOT/linode-firewall" && ./deploy.sh workload-remove "$WORKLOAD_NAME" "$NAMESPACE")
         echo "==> PVC preserved at $NAMESPACE/${WORKLOAD_NAME}-data"
         echo "    Run './deploy.sh --last-run' to re-deploy with existing PVC"
         ;;
