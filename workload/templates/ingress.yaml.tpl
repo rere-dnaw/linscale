@@ -16,7 +16,7 @@ spec:
         - name: ${WORKLOAD_NAME}-headers
           namespace: ${WORKLOAD_NS}
   tls:
-    secretName: ${WORKLOAD_NAME}-tls
+    secretName: wildcard-tls
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

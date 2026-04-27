@@ -110,6 +110,7 @@ WEB_HOST: ${WEB_HOST}
 EXTRA_PORTS: ${EXTRA_PORTS}
 PVC_ENABLED: ${PVC_ENABLED}
 PVC_SIZE: ${PVC_SIZE}
+PVC_NAME: ${WORKLOAD_NAME}-data
 EOF
 
 # 6. Apply nodepool
@@ -130,7 +131,7 @@ envsubst < "$WORKLOAD_DIR/templates/service.yaml.tpl" | kubectl apply -f -
 if [ "$ENABLE_TLS" = "true" ]; then
     echo "==> Configuring TLS..."
     envsubst < "$WORKLOAD_DIR/templates/ingress.yaml.tpl" | kubectl apply -f -
-    envsubst < "$WORKLOAD_DIR/templates/cert.yaml.tpl" | kubectl apply -f -
+    envsubst < "$WORKLOAD_DIR/templates/wildcard-cert.yaml.tpl" | kubectl apply -f -
 fi
 
 # 10. Apply PVC
@@ -154,7 +155,7 @@ cd "$REPO_ROOT/linode-firewall" && ./deploy.sh workload-apply "$WORKLOAD_NAME" "
 
 # 12. Wait for deployment
 echo "==> Waiting for deployment..."
-kubectl wait --for=condition=available deployment/${WORKLOAD_NAME} -n "$NAMESPACE" --timeout=300s
+kubectl wait --for=condition=available deployment/${WORKLOAD_NAME} -n "$NAMESPACE" --timeout=600s
 
 echo ""
 echo "========================================"

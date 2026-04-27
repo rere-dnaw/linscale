@@ -27,6 +27,12 @@ spec:
         - key: node.kubernetes.io/instance-type
           operator: In
           values: ["${WORKLOAD_INSTANCE_TYPE}"]
+        - key: topology.kubernetes.io/region
+          operator: In
+          values: ["${LINODE_REGION}"]
+        - key: topology.linode.com/region
+          operator: In
+          values: ["${LINODE_REGION}"]
       nodeClassRef:
         group: karpenter.k8s.linode
         kind: LinodeNodeClass

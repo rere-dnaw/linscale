@@ -1,8 +1,0 @@
-WORKLOAD_NAME: myapp
-WORKLOAD_NS: workloads
-WORKLOAD_IMAGE: nginx:latest
-WORKLOAD_INSTANCE_TYPE: g2-gpu-rtx4000a1-s
-WEB_HOST: app.portal7.eu
-EXTRA_PORTS: 
-PVC_ENABLED: true
-PVC_SIZE: 100Gi

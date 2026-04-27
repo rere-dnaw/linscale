@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: ${WORKLOAD_NAME}
+  name: wildcard-tls
   namespace: ${WORKLOAD_NS}
 spec:
-  secretName: ${WORKLOAD_NAME}-tls
+  secretName: wildcard-tls
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - ${WEB_HOST}
+    - "*.${TRAEFIK_DOMAIN}"j

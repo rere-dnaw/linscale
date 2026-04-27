@@ -26,10 +26,17 @@ WORKLOAD_NAME="${WORKLOAD_NAME:?WORKLOAD_NAME required}"
 case "${1:-}" in
     --destroy-pvc)
         echo "==> Destroying workload WITH PVC data..."
+        LAST_RUN_FILE="$WORKLOAD_DIR/${WORKLOAD_NAME}.last-run.yaml"
+        if [ -f "$LAST_RUN_FILE" ]; then
+            PVC_NAME=$(grep -E '^PVC_NAME:' "$LAST_RUN_FILE" | cut -d: -f2 | tr -d ' ')
+        fi
+        PVC_NAME="${PVC_NAME:-${WORKLOAD_NAME}-data}"
         kubectl delete -n "$NAMESPACE" deployment "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" service "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" ingressroute "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
-        kubectl delete -n "$NAMESPACE" pvc "${WORKLOAD_NAME}-data" --wait=true 2>/dev/null || true
+        kubectl delete -n "$NAMESPACE" certificate wildcard-tls --wait=true 2>/dev/null || true
+        kubectl delete -n "$NAMESPACE" secret wildcard-tls --wait=true 2>/dev/null || true
+        kubectl delete -n "$NAMESPACE" pvc "$PVC_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodepool "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodeclass "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         echo "==> Removing firewall rules..."
@@ -41,6 +48,8 @@ case "${1:-}" in
         kubectl delete -n "$NAMESPACE" deployment "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" service "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" ingressroute "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
+        kubectl delete -n "$NAMESPACE" certificate wildcard-tls --wait=true 2>/dev/null || true
+        kubectl delete -n "$NAMESPACE" secret wildcard-tls --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodepool "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         kubectl delete -n "$NAMESPACE" nodeclass "$WORKLOAD_NAME" --wait=true 2>/dev/null || true
         echo "==> Removing firewall rules..."

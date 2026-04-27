@@ -21,13 +21,13 @@ Scripts for deploying workloads with Karpenter nodepools.
 # Destroy workload
 ./destroy.sh
 ```
-
+s
 ## select-instance.sh
 
 Interactive Linode instance selector for GPU nodepools. Used by `deploy.sh` when `WORKLOAD_INSTANCE_TYPE` is not set. Can also be run standalone:
 
 ```bash
-LINODE_CLI_NS=kube-system LINODE_REGION=de-fra-2 ./select-instance.sh [instance-type-id]
+./select-instance.sh [instance-type-id]
 ```
 
 Requires: `jq`

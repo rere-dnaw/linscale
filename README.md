@@ -201,3 +201,9 @@ LINODE_TYPE=$(./linode-cli/select-instance.sh g2-gpu-rtx4000-ada-1xmedium)
 - If requested instance unavailable, shows numbered alternatives within same class+GPU group
 
 **Requires:** `jq` installed locally (e.g. `sudo apt install jq` or `brew install jq`)
+
+
+# TODO
+- [ ] automate domain creation
+- [ ] cert with *.domain
+- [ ] PVC is destroyeed but volume I keept. Fix it.
