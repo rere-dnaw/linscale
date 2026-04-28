@@ -202,6 +202,14 @@ LINODE_TYPE=$(./linode-cli/select-instance.sh g2-gpu-rtx4000-ada-1xmedium)
 
 **Requires:** `jq` installed locally (e.g. `sudo apt install jq` or `brew install jq`)
 
+## Git hooks
+If problem try 
+```bash
+rm -rf .git/hooks/*
+poetry run pre-commit autoupdate
+poetry run pre-commit install
+```
+
 
 # TODO
 - [ ] automate domain creation
